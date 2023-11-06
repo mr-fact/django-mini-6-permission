@@ -1,0 +1,1 @@
+# django-mini-6-permission
