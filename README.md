@@ -94,3 +94,31 @@ class ExampleView(APIView):
         }
         return Response(content)
 ```
+
+## API Reference
+- AllowAny
+- IsAuthenticated
+- IsAdminUser (`user.is_staff` == True)
+- IsAuthenticatedOrReadOnly (safe methods = `GET`, `HEAD`, `OPTIONS`)
+- DjangoModelPermissions
+- DjangoModelPermissionsOrAnonReadOnly
+- DjangoObjectPermissions
+
+### DjangoModelPermissions & DjangoObjectPermissions
+- DjangoModelPermissions ties into Django's standard `django.contrib.auth` [model permissions](https://docs.djangoproject.com/en/stable/topics/auth/customizing/#custom-permissions)
+- DjangoObjectPermissions ties into Django's standard [object permissions framework](https://docs.djangoproject.com/en/stable/topics/auth/customizing/#handling-object-permissions). In order to use this permission class, you'll also need to add a permission backend that supports object-level permissions, such as [django-guardian](https://github.com/lukaszb/django-guardian).
+
+These permissions must only be applied to views that have a `.queryset` property or `get_queryset()` method
+
+The appropriate model is determined by checking `get_queryset().model` or `queryset.model`.
+
+- `POST` Method -> check `add` permission on the model
+- `PUT`, `PATCH` Method -> check `change` permission on the model
+- `DELETE` Method -> check `delete` permission on the model
+
+you might want to include a `view model permission` for `GET` requests.
+
+To use custom model permissions, override `DjangoModelPermissions` or `DjangoObjectPermissions`, and set the `.perms_map` property.
+
+**Note**: If you need object level view permissions for `GET`, `HEAD` and `OPTIONS` requests and are using `django-guardian` for your object-level permissions backend, you'll want to consider using the `DjangoObjectPermissionsFilter` class provided by the [djangorestframework-guardian package](https://github.com/rpkilby/django-rest-framework-guardian). It ensures that list endpoints only return results including objects for which the user has appropriate view permissions.
+
