@@ -197,3 +197,13 @@ view rase `APIException` if permission checks fail
 
 - A `Serializer` should not raise `PermissionDenied` in a list action, or the entire list would not be returned
 - The `get_*()` methods have access to the current view and can return different `Serializer` or `QuerySet` instances based on the `request` or `action`
+
+## Third party packages
+- [Django REST - Access Policy](https://github.com/rsinger86/drf-access-policy)
+- [Composed Permissions](https://github.com/niwibe/djangorestframework-composed-permissions)
+- [REST Condition](https://github.com/caxap/rest_condition)
+- [DRY Rest Permissions](https://github.com/FJNR-inc/dry-rest-permissions)
+- [Django Rest Framework Roles](https://github.com/computer-lab/django-rest-framework-roles)
+- [Django REST Framework API Key](https://florimondmanca.github.io/djangorestframework-api-key/)
+- [Django Rest Framework Role Filters](https://github.com/allisson/django-rest-framework-role-filters)
+- [Django Rest Framework PSQ](https://github.com/drf-psq/drf-psq)
