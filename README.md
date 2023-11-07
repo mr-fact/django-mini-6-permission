@@ -122,3 +122,78 @@ To use custom model permissions, override `DjangoModelPermissions` or `DjangoObj
 
 **Note**: If you need object level view permissions for `GET`, `HEAD` and `OPTIONS` requests and are using `django-guardian` for your object-level permissions backend, you'll want to consider using the `DjangoObjectPermissionsFilter` class provided by the [djangorestframework-guardian package](https://github.com/rpkilby/django-rest-framework-guardian). It ensures that list endpoints only return results including objects for which the user has appropriate view permissions.
 
+## Custom permissions
+- override `BasePermission` class
+- override `.has_permission(self, request, view)` method
+- override `.has_object_permission(self, request, view, obj)` method
+- return `True` if the request should be granted access
+- return `False` otherwise
+- rase `PermissionDenied` exception if return `False`
+
+`safe methods`
+``` python
+if request.method in permissions.SAFE_METHODS:
+    # Check permissions for read-only request
+else:
+    # Check permissions for write request
+```
+
+for instance-level in view: (`.check_object_permissions()` -> `.has_permission()` -> `.has_object_permission()`)
+
+To change the error message associated with the exception, implement a `message` attribute directly on your `custom permission`
+``` python
+from rest_framework import permissions
+
+class CustomerAccessPermission(permissions.BasePermission):
+    message = 'Adding customers not allowed.'
+
+    def has_permission(self, request, view):
+         ...
+```
+
+examples:
+``` python
+from rest_framework import permissions
+
+class BlocklistPermission(permissions.BasePermission):
+    """
+    Global permission check for blocked IPs.
+    """
+
+    def has_permission(self, request, view):
+        ip_addr = request.META['REMOTE_ADDR']
+        blocked = Blocklist.objects.filter(ip_addr=ip_addr).exists()
+        return not blocked
+```
+``` python
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Object-level permission to only allow owners of an object to edit it.
+    Assumes the model instance has an `owner` attribute.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Instance must have an attribute named `owner`.
+        return obj.owner == request.user
+```
+
+in `generic views` will check the appropriate the object level permissions
+
+if you're writing your own `custom views`, you'll need to make sure you check the object level permission checks yourself (by calling `self.check_object_permissions(request, obj)`)
+
+view rase `APIException` if permission checks fail
+
+## Overview of access restriction methods
+- `queryset`/`get_queryset()`
+- `permission_classes`/`get_permissions()`
+- `serializer_class`/`get_serializer()`
+
+![image](https://github.com/mr-fact/django-mini-6-permission/assets/110711776/aaa6663b-81d5-4b9a-9a0b-5168786826d6)
+
+- A `Serializer` should not raise `PermissionDenied` in a list action, or the entire list would not be returned
+- The `get_*()` methods have access to the current view and can return different `Serializer` or `QuerySet` instances based on the `request` or `action`
